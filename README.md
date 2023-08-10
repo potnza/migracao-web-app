@@ -77,9 +77,16 @@ O cluster **EKS** contém um **AutoScaling**, serviço que garante dimensionamen
 O **Amazon S3** é usado para armazenamento de estáticos do site e de snapshots de backup do RDS;
 Um **EFS (Elastic File System)** é utilizado para armazenamento de arquivos compartilhados da aplicação;
 
+**Especificações ténicas dos Worker Nodes:** 
+- m6g.medium (1 vCPU; 4GB de memória RAM)
+- 20GB de volume EBS
+
 #### :wrench: Acesso administrativo:
 O ambiente interno da aplicação pode ser acessado através de um bastion host, que é uma instância EC2, tipo **t2.micro**. Este bastion pode ser usado para fins de acesso ao banco de dados, aos arquivos compartilhados (EFS), a ferramentas de monitoramento… Existe um **AutoScaling Group** configurado para a instância Bastion, definido para as duas Azs, garantindo alta disponibilidade de acesso administrativo.
 São definidas credenciais de acesso temporário, roles (funções de permissionamento) e demais mecanismos de segurança com os serviços de **IAM (Identity Access Management)**;
+
+**Especificações ténicas do Bastion Host:** 
+- t2.micro (1 vCPU; 1GB de memória RAM)
 
 #### :cloud: Configuração de rede:
 A aplicação é hospedada na região AWS "sa-east-1" (São Paulo) e dividida entre duas Zonas de Disponibilidade, sa-east-1a e sa-east-1b, garantindo alta disponibilidade.
@@ -87,12 +94,20 @@ A rede interna da aplicação é implementada com uma **VPC (Virtual Private Net
 Dentro da VPC existe: uma **subnet pública**, com rotas para um **Internet Gateway.** Ela contém o Bastion Host, o **Nat gateway** e **Load Balancer**; uma subnet privada, contendo os nodes do **cluster EKS**; uma **subnet privada**, contendo o banco de dados **RDS Aurora**.
 
 #### 🎲 Banco de Dados:
-O Amazon Aurora é um banco de dados relacional, desenvolvido pela AWS e que pode ser até 3x mais rápido que o MySQL e 5x mais rápido que o PostgreSQL. É um banco de dados onde se pode escolher uma instância para rodar ele ou escolher de maneira serverless, onde a própria AWS cuida da infraestrutura do banco para o cliente. No nosso caso acabamos optando pela escolha de roda-lo em uma instância (t3.medium) e optamos por um banco de dados de 300GB e também adicionamos uma opção de 300GB de espaço adicional para back-up. Adicionamos também 1000GB de exportação de snapshot mensal para o nosso Bucket S3 Glacier IA.
+O Amazon Aurora é um banco de dados relacional, desenvolvido pela AWS e que pode ser até 3x mais rápido que o MySQL e 5x mais rápido que o PostgreSQL. É um banco de dados onde se pode escolher uma instância para rodar ele ou escolher de maneira serverless, onde a própria AWS cuida da infraestrutura do banco para o cliente. No nosso caso acabamos optando pela escolha de roda-lo em uma instância (db.t4g.medium)  e optamos por um banco de dados de 300GB e também adicionamos uma opção de 300GB de espaço adicional para back-up. Adicionamos também 1000GB de exportação de snapshot mensal para o nosso Bucket S3 Glacier IA.
 **Disponibilidade** O serviço divide o volume de um banco de dados em blocos de 10 GB, espalhados por diferentes discos. Cada pedaço é replicado de seis maneiras em três zonas de disponibilidade da AWS (AZs). 
 **Backup**
 O Amazon Aurora realiza back-ups automatizados que podem ser armazenados em buckets S3 ou o espaço para armazenamento pode ser provisionado pela própria AWS. Também temos a opção das snapshots manuais, que são armazenados no Amazon S3; duram lá até que sejam deletados manualmente; o banco de dados pode ser restaurado a partir de um snapshot; é armazenado com redundância geográfica. (custo mais baixo)
 **Escalabilidade**
 Burst capability (general purpose SSD – familia t) quando o banco de dados está funcionando abaixo do limite, ele acumula créditos, os quais são usados em casos de picos de uso, evitando que se bata no limite e que se precise provisionar mais capacidade. Com o Aurora é possível criar Read Replicas do banco de dados: são replicas criadas com snapshots do banco em diferentes regiões, para diminuir risco de desastre e também para distribuir o tráfego de leitura.
+
+**Especificações ténicas do Amazon Aurora:**
+- Aurora Standard
+- db.t4g.medium (2 vCPU; 4GB de memória RAM;)
+- 300GB de armazenamento
+- 300GB de backup
+- 1000GB de exportação de snapshots por mês
+
 ### :dart: Arquitetura Final proposta
 Segue modelo final da arquitetura proposta para a migração do Web-App.
 
