@@ -54,14 +54,21 @@ necessário/mínimo acesso possível).
 **Objetivo:** Monte a proposta e a arquitetura do que
 o grupo propõe entregar.
 
+ ## :hammer: Arquitetura atual do cliente
+ Imagem que demonstra a arquietura atual do cliente.
+
+![arch-cliente](https://github.com/potnza/migracao-web-app/assets/113041172/28a30c1b-c971-4ac5-a610-88dd198321a9)
+
+ 
+ 
  ## :triangular_ruler: Descrição geral da arquitetura: 
-O acesso à aplicação é configurado no domínio do site no **Rota 53**, o serviço de DNS da AWS. O tráfego de entrada passa por um **WAF – Web Application Firewall**, que é uma camada a mais de segurança para o ambiente. O tráfego é direcionado para um **ALB – Application Load Balancer**, que o distribui entre as máquinas do cluster Kubernetes. O cluster Kubernetes é implementado com o serviço de **EKS – Elastic Kubernetes Service**, o qual gerencia o cluster e contém um **AutoScaling** para as máquinas. As máquinas do cluster rodam a aplicação. Elas se conectam ao banco de dados da aplicação, que é uma instância Amazon RDS Aurora. Os snapshots de backup do RDS são armazenados num **Bucket S3 Glacier Instant Retrieval**. Para comunicação externa, as máquinas do cluster contam com o **NAT Gateway**, o elemento que possibilita conexão externa para elas. O ambiente ainda oferece um **EFS – Elastic File System**, o serviço de NFS da Amazon, que é montado nas máquinas armazenando arquivos compartilhados da aplicação. Os estáticos do site são armazenados num Bucket S3 Standard. O **Amazon RDS Aurora** é o banco de dados da aplicação. O Amazon Aurora ja é desenhado para ser multi-az, funcionando por um cluster de data-bases, tendo assim um grande poder de *Disaster Recovery* ou seja, possui uma confiabilidade muito alta.
+O acesso à aplicação é configurado no domínio do site no **Rota 53**, o serviço de DNS da AWS. O tráfego de entrada passa por um **WAF – Web Application Firewall**, que é uma camada a mais de segurança para o ambiente. O tráfego é direcionado para um **ALB – Application Load Balancer**, que o distribui entre as máquinas do cluster Kubernetes. O cluster Kubernetes é implementado com o serviço de **EKS – Elastic Kubernetes Service**, o qual gerencia o cluster e contém um **AutoScaling **para as máquinas. As máquinas do cluster rodam a aplicação. Elas se conectam ao banco de dados da aplicação, que é uma instância Amazon RDS Aurora. Os snapshots de backup do RDS são armazenados num **Bucket S3 Glacier Instant Retrieval**. Para comunicação externa, as máquinas do cluster contam com o **NAT Gateway**, o elemento que possibilita conexão externa para elas. O ambiente ainda oferece um **EFS – Elastic File System**, o serviço de NFS da Amazon, que é montado nas máquinas armazenando arquivos compartilhados da aplicação. Os estáticos do site são armazenados num Bucket S3 Standard. O **Amazon RDS Aurora** é o banco de dados da aplicação. O Amazon Aurora ja é desenhado para ser multi-az, funcionando por um cluster de data-bases, tendo assim um grande poder de *Disaster Recovery* ou seja, possui uma confiabilidade muito alta.
 
 #### :lock: Camada de rede/entrada:
 
 A resolução de DNS do site é feita com o **Rota 53**;
-O tráfego é filtrado pelo **WAF (Web Application Firewall)** ;
-O **ALB(Application Load Balancer)** distribui o tráfego entre os nodes do cluster Kubernetes;
+O tráfego é filtrado pelo **WAF (Web Application Firewall)**;
+O **ALB (Application Load Balancer) **distribui o tráfego entre os nodes do cluster Kubernetes;
 
 #### :computer: Camada de aplicação:
 O cluster Kubernetes é implementado com o **EKS (Elastic Kubernetes Service)**, que gerencia autonomamente os nodes;
@@ -71,13 +78,13 @@ O **Amazon S3** é usado para armazenamento de estáticos do site e de snapshots
 Um **EFS (Elastic File System)** é utilizado para armazenamento de arquivos compartilhados da aplicação;
 
 #### :wrench: Acesso administrativo:
-O ambiente interno da aplicação pode ser acessado através de um bastion host, que é uma instância EC2, tipo **t2.micro**. Este bastion pode ser usado para fins de acesso ao banco de dados, aos arquivos compartilhados (EFS), a ferramentas de monitoramento… Existe um **AutoScaling Group** configurado para a instância Bastion, definido para as duas Azs, garantindo alta disponibilidade de acesso administrativo.
+O ambiente interno da aplicação pode ser acessado através de um bastion host, que é uma instância EC2, tipo **t2.micro**. Este bastion pode ser usado para fins de acesso ao banco de dados, aos arquivos compartilhados (EFS), a ferramentas de monitoramento… Existe um** AutoScaling Group **configurado para a instância Bastion, definido para as duas Azs, garantindo alta disponibilidade de acesso administrativo.
 São definidas credenciais de acesso temporário, roles (funções de permissionamento) e demais mecanismos de segurança com os serviços de **IAM (Identity Access Management)**;
 
 #### :cloud: Configuração de rede:
 A aplicação é hospedada na região AWS "sa-east-1" (São Paulo) e dividida entre duas Zonas de Disponibilidade, sa-east-1a e sa-east-1b, garantindo alta disponibilidade.
 A rede interna da aplicação é implementada com uma **VPC (Virtual Private Network)**, abrangendo as duas AZs (sa-east-1a e sa-east-1b);
-Dentro da VPC existe: uma **subnet pública**, com rotas para um **Internet Gateway.** Ela contém o Bastion Host, o **Nat gateway** e **Load Balancer**; uma subnet privada, contendo os nodes do **cluster EKS**; uma **subnet privada**, contendo o banco de dados **RDS Aurora**.
+Dentro da VPC existe: uma **subnet pública**, com rotas para um **Internet Gateway.** Ela contém o Bastion Host, o **Nat gateway** e** Load Balancer**; uma subnet privada, contendo os nodes do** cluster EKS**; uma** subnet privada**, contendo o banco de dados ** RDS Aurora**.
 
 #### 🎲 Banco de Dados:
 O Amazon Aurora é um banco de dados relacional, desenvolvido pela AWS e que pode ser até 3x mais rápido que o MySQL e 5x mais rápido que o PostgreSQL. É um banco de dados onde se pode escolher uma instância para rodar ele ou escolher de maneira serverless, onde a própria AWS cuida da infraestrutura do banco para o cliente. No nosso caso acabamos optando pela escolha de roda-lo em uma instância (t3.medium) e optamos por um banco de dados de 300GB e também adicionamos uma opção de 300GB de espaço adicional para back-up. Adicionamos também 1000GB de exportação de snapshot mensal para o nosso Bucket S3 Glacier IA.
@@ -86,6 +93,12 @@ O Amazon Aurora é um banco de dados relacional, desenvolvido pela AWS e que pod
 O Amazon Aurora realiza back-ups automatizados que podem ser armazenados em buckets S3 ou o espaço para armazenamento pode ser provisionado pela própria AWS. Também temos a opção das snapshots manuais, que são armazenados no Amazon S3; duram lá até que sejam deletados manualmente; o banco de dados pode ser restaurado a partir de um snapshot; é armazenado com redundância geográfica. (custo mais baixo)
 **Escalabilidade**
 Burst capability (general purpose SSD – familia t) quando o banco de dados está funcionando abaixo do limite, ele acumula créditos, os quais são usados em casos de picos de uso, evitando que se bata no limite e que se precise provisionar mais capacidade. Com o Aurora é possível criar Read Replicas do banco de dados: são replicas criadas com snapshots do banco em diferentes regiões, para diminuir risco de desastre e também para distribuir o tráfego de leitura.
-### Arquitetura Final proposta
+### :dart: Arquitetura Final proposta
+Segue modelo final da arquitetura proposta para a migração do Web-App.
 
-![](https://github.com/potnza/migracao-web-app/issues/1#issue-1845494938) 
+![arch-final](https://github.com/potnza/migracao-web-app/assets/113041172/cf52fb7d-e860-42a3-91c0-4b623ea6dbc4)
+
+---
+
+![compass-uol](https://github.com/potnza/migracao-web-app/assets/113041172/d88d3625-a53b-49ee-8690-664d3a5bc425)
+
