@@ -57,7 +57,8 @@ o grupo propõe entregar.
  ## :hammer: Arquitetura atual do cliente
  Imagem que demonstra a arquietura atual do cliente.
 
-![arch-cliente](https://github.com/potnza/migracao-web-app/assets/113041172/28a30c1b-c971-4ac5-a610-88dd198321a9)
+
+![arch-cliente](https://github.com/potnza/migracao-web-app/assets/113041172/c7ffe70e-c0c4-44e8-8aa8-d9ccc9ddea3f)
 
  
  
@@ -111,9 +112,11 @@ Burst capability (general purpose SSD – familia t) quando o banco de dados est
 ### :dart: Arquitetura Final proposta
 Segue modelo final da arquitetura proposta para a migração do Web-App.
 
-![arch-final](https://github.com/potnza/migracao-web-app/assets/113041172/cf52fb7d-e860-42a3-91c0-4b623ea6dbc4)
+![arch-final](https://github.com/potnza/migracao-web-app/assets/113041172/0ff4033e-ddec-4d84-a453-80e8783b563c)
+
 
 ---
 
-![compass-uol](https://github.com/potnza/migracao-web-app/assets/113041172/d88d3625-a53b-49ee-8690-664d3a5bc425)
+![compass-uol](https://github.com/potnza/migracao-web-app/assets/113041172/c62d3b04-fb29-49b1-bb33-29ae50d45048)
+
 
